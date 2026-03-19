@@ -4,42 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 	<link rel="manifest" href="manifest.json">
+	<link rel="stylesheet" href="estilos.css">
 	<meta name="theme-color" content="#e74c3c">
     <title>Tensión Hoy</title>
-    <style>
-        :root { --p: #2c3e50; --sis: #e74c3c; --dia: #3498db; --pul: #27ae60; --bg: #f4f7f6; }
-        body { font-family: system-ui, sans-serif; background: var(--bg); padding: 10px; color: var(--p); margin: 0; }
-        .card { max-width: 450px; margin: auto; background: white; padding: 15px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-         h2 { text-align: center; margin: 0 0 20px 0; font-size: 1.3rem; color: var(--sis); }
-        /* Formulario en líneas */
-        .f-row { display: flex; gap: 8px; margin-bottom: 10px; }
-        .f-group { display: flex; flex-direction: column; flex: 1; }
-        label { font-size: 9px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 3px; }
-        input { width: 100%; padding: 10px; border: 2px solid #f1f5f9; border-radius: 10px; font-size: 15px; outline: none; box-sizing: border-box; background: #f8fafc; }
-        input:focus { border-color: var(--sis); background: white; }
-        
-        .btn-add { width: 100%; padding: 15px; background: var(--sis); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 800; font-size: 16px; margin-bottom: 20px; }
-
-        /* Lista en una sola línea */
-        .log-item { 
-            display: flex; align-items: center; justify-content: space-between; 
-            padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: 13px; gap: 5px;
-        }
-        .col-time { color: #94a3b8; font-weight: 600; font-size: 11px; white-space: nowrap; }
-        .col-data { font-weight: 800; white-space: nowrap; flex-shrink: 0; }
-        .col-pul { color: var(--pul); font-weight: 700; margin-left: 4px; font-size: 11px; }
-        .col-note { color: #64748b; font-style: italic; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-grow: 1; margin: 0 5px; }
-        
-        .badge { font-weight: 800; padding: 2px 6px; border-radius: 5px; color: white; font-size: 9px; flex-shrink: 0; text-align: center; min-width: 30px; }
-        .status-normal { background: #10b981; }
-        .status-elevated { background: #f59e0b; }
-        .status-stage1 { background: #f97316; }
-        .status-stage2 { background: #ef4444; }
-        .status-crisis { background: #a855f7; }
-
-        .toolbar { display: flex; justify-content: space-between; margin-top: 20px; gap: 10px; }
-        .btn-tool { flex: 1; background: white; border: 1px solid #e2e8f0; padding: 8px; border-radius: 10px; font-size: 11px; font-weight: 700; color: #64748b; cursor: pointer; }
-    </style>
+   
 </head>
 <body>
 <h2>🩸 Registro Salud 🩺</h2>
