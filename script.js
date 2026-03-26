@@ -48,7 +48,7 @@
                     <span class="col-data">${r.s}/${r.d}<span class="col-pul">${r.p}</span></span>
                     <span class="col-note"></span>
                     <span class="badge ${st.class}">${st.label}</span>
-                    <span style="color:#def; cursor:pointer; display: inline-block; text-align: center; font-weight: bold;width: 1.5rem; height: 1.5rem; line-height: 1rem; font-size: 150%; border-radius: 100%; background-color: #ab2c2c;
+                    <span style="color:#def; cursor:pointer; display: inline-block; text-align: center; font-weight: bold;width: 1.5rem; height: 1.5rem; font-size: 150%; border-radius: 100%; background-color: #ab2c2c;
 " onclick="del(${r.id})">×</span>
                 </div>
 				${ r.n ? `<span class="col-note">${r.n}</span>` : '' }
