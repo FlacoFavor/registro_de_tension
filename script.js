@@ -42,16 +42,20 @@
             const st = getStatus(r.s, r.d);
             const dateShort = r.f.split('-').slice(1).reverse().join('/');
             container.innerHTML += `
+				<div>
                 <div class="log-item">
                     <span class="col-time">${dateShort} ${r.h}</span>
                     <span class="col-data">${r.s}/${r.d}<span class="col-pul">${r.p}</span></span>
-                    <span class="col-note">${r.n || ''}</span>
+                    <span class="col-note"></span>
                     <span class="badge ${st.class}">${st.label}</span>
-                    <span style="color:#ccc; cursor:pointer" onclick="del(${r.id})">×</span>
-                </div>`;
+                    <span style="color:#def; cursor:pointer; display: inline-block; text-align: center; font-weight: bold;width: 1.5rem; height: 1.5rem;font-size: 150%; line-height:1.15rem; border-radius: 100%; background-color: #ab2c2c;
+" onclick="del(${r.id})">×</span>
+                </div>
+				${ r.n ? `<span class="col-note">${r.n}</span>` : '' }
+				
+				</div>`;
         });
-    }
-
+    };//${if(r.n) {<span class="col-note">${r.n || ''}</span>}}
     function del(id) {
         if(confirm("¿Borrar?")) {
             let l = JSON.parse(localStorage.getItem('health_final_v1')).filter(r => r.id !== id);
