@@ -1,4 +1,4 @@
-const cacheName = 'tension-v1';
+const cacheName = 'tension-v1.1';
 const assets = ['./', './index.html',"./estilos.css","./script.js",'./manifest.json'];
 
 self.addEventListener('install', e => {
