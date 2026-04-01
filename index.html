@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<link rel="manifest" href="manifest.json">
+	<link rel="stylesheet" href="estilos.css">
+	
+	<meta name="theme-color" content="#e74c3c">
+    <title>Tensión Hoy</title>
+   
+</head>
+<body>
+<h2>🩸 Registro de Tensión 🩺</h2>
+<div class="card">
+    <div class="f-row">
+        <div class="f-group" style="flex: 1.5;"><label>Fecha</label><input type="date" id="f"></div>
+        <div class="f-group"><label>Hora</label><input type="time" id="h"></div>
+    </div>
+    <div class="f-row">
+        <div class="f-group"><label>Sistólica</label><input type="number" id="s" placeholder="120" inputmode="numeric"></div>
+        <div class="f-group"><label>Diastólica</label><input type="number" id="d" placeholder="80" inputmode="numeric"></div>
+        <div class="f-group"><label>Pulso</label><input type="number" id="p" placeholder="70" inputmode="numeric"></div>
+    </div>
+    <div class="f-row">
+        <div class="f-group"><label>Nota</label><input type="text" id="n" placeholder="Opcional..."></div>
+    </div>
+	<div class="botones">
+		<button class="btn-add" onclick="add()">Guardar Medición</button>
+		<button class="btn-med" onclick="mostrar()">Ver Tratamiento</button>
+	</div>
+    
+
+    <div id="log-list"></div>
+
+    <div class="toolbar">
+        <button class="btn-tool" onclick="exportCSV()">⬆️ Exportar</button>
+        <button class="btn-tool" style="color:#ef4444" onclick="clearAll()">🗑️ Reset</button>
+		<button class="btn-tool" onclick="importCSV()">⬇️️ Importar</button>
+    </div>
+</div>
+
+<!-- ----- -->
+
+<div class="card2">
+    <h2 style="text-align:center; color: var(--primary);">Tratamiento</h2>
+    
+    <div class="form">
+        <input type="text" id="nombre" placeholder="Nombre del medicamento">
+        <input type="text" id="uso" placeholder="Para qué es?">
+        <textarea id="nota" rows="2" placeholder="Nota opcional (ej: con la comida)"></textarea>
+        <select id="momento">
+            <option value="mañana">🌅 Mañana</option>
+            <option value="mediodia">☀️ Mediodía</option>
+            <option value="noche">🌙 Noche</option>
+			<option value="sos">⚡ SOS (Si es necesario)</option>
+        </select>
+		<button id="add" onclick="agregar()">Añadir Medicamento</button>
+        
+    </div>
+	<div class="botones">
+		<button id="anadir" onclick="anadir()">Añadir</button>
+		<button id="cerrar" onclick="cerrar()">Cerrar</button>
+	</div>
+    <div id="g-mañana" class="grupo">
+        <div class="header h-mañana">🌅 Mañana</div>
+        <div class="lista"></div>
+    </div>
+    <div id="g-mediodia" class="grupo">
+        <div class="header h-mediodia">☀️ Mediodía</div>
+        <div class="lista"></div>
+    </div>
+    <div id="g-noche" class="grupo">
+        <div class="header h-noche">🌙 Noche</div>
+        <div class="lista"></div>
+    </div>
+	
+	<div id="g-sos" class="grupo">
+        <div class="header h-sos">
+            <span>⚡ SOS / Si es necesario</span>
+            <button onclick="reiniciarContadores()" style="background:none; border:1px solid var(--sos); color:var(--sos); font-size:9px; cursor:pointer; padding:2px 5px; border-radius:4px;">Limpiar</button>
+        </div>
+        <div class="lista"></div>
+    </div>
+
+    <!-- Sección de Historial -->
+    <div id="historial-section">
+        <div class="header" style="color:#b2bec3">🕒 Registro de tomas hoy</div>
+        <div id="log-lista"></div>
+    </div>
+	
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
