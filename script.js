@@ -50,48 +50,93 @@
         render();
     }
 
-    function render() {
+	// 1. Inyectamos solo la ESTRUCTURA del despliegue (sin colores de fondo raros)
+	const injectBaseStyles = () => {
+		if (document.getElementById('health-base-styles')) return;
+		const style = document.createElement('style');
+		style.id = 'health-base-styles';
+		style.innerHTML = `
+			.month-group { margin-bottom: 10px; border-bottom: 1px solid #444; }
+			.month-header { 
+				cursor: pointer; padding: 10px;
+				background: rgba(255,255,255,0.05); border-radius: 5px;
+				color: #eee;
+				background: #456;
+			}
+			.month-content {
+				display: none;
+				padding-top: 10px;
+				padding: 0 .5rem;
+				background: #eee;
+			}
+			/* La magia: si el padre tiene .is-open, muestra el hijo */
+			.month-group.is-open .month-content { display: block; }
+			.arrow-icon { 
+				display: inline-block; 
+				transition: transform 0.3s ease; 
+				
+				width: 1.5rem; 
+				text-align: center;
+				transform: rotate(-90deg);
+			}
+			.is-open .arrow-icon {
+				transform: rotate(0deg); opacity: 1;
+			}
+		`;
+		document.head.appendChild(style);
+	};
+
+	function render() {
+		injectBaseStyles();
 		const logs = JSON.parse(localStorage.getItem('health_final_v1') || '[]');
 		const container = document.getElementById('log-list');
 		container.innerHTML = '';
 
-		// 1. Agrupar registros por "Mes Año"
-		const groups = {};
 		const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+		const groups = {};
 
-		// Invertimos el orden para que lo más reciente aparezca arriba
+		// Agrupar (del más nuevo al más viejo)
 		[...logs].reverse().forEach(r => {
-			const dateObj = new Date(r.f + 'T' + r.h);
-			const groupKey = `${months[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
-			
-			if (!groups[groupKey]) groups[groupKey] = [];
-			groups[groupKey].push(r);
+			const d = new Date(r.f + 'T' + r.h);
+			const key = `${months[d.getMonth()]} ${d.getFullYear()}`;
+			if (!groups[key]) groups[key] = [];
+			groups[key].push(r);
 		});
 
-		// 2. Dibujar los grupos y sus registros
-		for (const monthYear in groups) {
-			// Añadir cabecera del mes
-			container.innerHTML += `<div class="month-header" style="background:#456; color:#fff; padding:5px 10px; margin:15px 0 5px; border-radius:4px; font-size:0.9rem; font-weight:bold;">${monthYear}</div>`;
+		Object.keys(groups).forEach((monthYear, index) => {
+			const openClass = index === 0 ? 'is-open' : ''; // Solo abre el primero por defecto
+
+			let html = `
+				<div class="month-group ${openClass}">
+					<div class="month-header" onclick="this.parentElement.classList.toggle('is-open')">
+						<span class="arrow-icon">▼</span>
+						<span style="font-weight: bold;">${monthYear}</span>
+					</div>
+					<div class="month-content">`;
 
 			groups[monthYear].forEach(r => {
 				const st = getStatus(r.s, r.d);
-				const dateShort = r.f.split('-').reverse().slice(0, 1); // Solo el día si ya tenemos el mes arriba
-				
-				container.innerHTML += `
-					<div style="margin-bottom: 8px;">
+				// Formato de fecha día/mes
+				const dateShort = r.f.split('-').slice(1).reverse().join('/');
+
+				html += `
+					<div>
 						<div class="log-item">
-							<span class="col-time">${r.f.split('-')[2]} - ${r.h}</span>
+							<span class="col-time">${dateShort} ${r.h}</span>
 							<span class="col-data">${r.s}/${r.d}<span class="col-pul">${r.p}</span></span>
 							<span class="col-note"></span>
 							<span class="badge ${st.class}">${st.label}</span>
-							<span onclick="del(${r.id})" style="color:#def; cursor:pointer; display: inline-block; text-align: center; font-weight: bold; width: 1.5rem; height: 1.5rem; line-height: 1; font-size: 150%; border-radius: 100%; background-color: #ab2c2c;">×</span>
+							<span style="color:#fff; cursor:pointer; font-weight:bold; width: 1.5rem; height: 1.5rem; line-height: 1.2; text-align:center; border-radius: 50%; background: #ab2c2c;" onclick="del(${r.id})">×</span>
 						</div>
-						${ r.n ? `<div class="col-note" style="font-size:0.85rem; color:#aaa; margin-left:10px;">${r.n}</div>` : '' }
+						${ r.n ? `<div class="col-note" style="margin-left: 10px; font-size: 0.9em; opacity: 0.7;">${r.n}</div>` : '' }
 					</div>`;
 			});
-		}
-	};
 
+			html += `</div></div>`;
+			container.innerHTML += html;
+		});
+	};
+	
     function del(id) {
         if(confirm("¿Borrar?")) {
             let l = JSON.parse(localStorage.getItem('health_final_v1')).filter(r => r.id !== id);
@@ -244,15 +289,33 @@
 						<b>${m.nombre}</b>
 						<span class="uso">💊 ${m.uso || 'Sin uso'}</span>
 						<!-- AQUÍ EL CAMBIO DE COLOR -->
-						<span class="hora-toma" style="color: ${reciente ? '#ff3b3b' : '#888'}; font-weight: ${reciente ? 'bold' : 'normal'}">
-							${m.ultima ? 'Última: ' + m.ultima : ''} ${reciente ? '⚠️' : ''}
-						</span>
+						<div class="hora-toma" style="width: 65vw ;display: flex; justify-content: space-between;">
+							<span style="color: ${reciente ? '#ff3b3b' : '#888'}; font-weight: ${reciente ? 'bold' : 'normal'}">
+								${m.ultima ? 'Última: ' + m.ultima : ''} ${reciente ? '⚠️' : ''}
+							</span>
+							<span style="color: ${reciente ? '#06c30e' : '#888'}; font-weight: ${reciente ? 'bold' : 'normal'}">
+								${m.ultima ? 'Próxima: ' + proxima(m.ultima) : ''} ${reciente ? '🕒' : ''}
+							</span>
+						</div>
 					</div>
 				</div>
 				<button class="btn-del" onclick="borrarMed(${m.id})">✕</button>
 			`;
 			contenedor.appendChild(div);
 		});
+	};
+	
+	function proxima(horaString) {
+		const [horas, minutos] = horaString.split(':');
+		const ahora = new Date();
+		const fechaEspecifica = new Date(
+			ahora.getFullYear(),
+			ahora.getMonth(),
+			ahora.getDate(),
+			parseInt(horas) + 8,
+			minutos
+		);
+		return fechaEspecifica.getHours().toString().padStart(2, '0') + ':' +  fechaEspecifica.getMinutes().toString().padStart(2, '0');
 	};
 
 	// Función para borrar físicamente del Storage
@@ -288,7 +351,7 @@
 			}
 
 			meds[idx].tomas = (meds[idx].tomas || 0) + 1;
-			meds[idx].ultima = horaTxt;
+			meds[idx].ultima = '10:00'//horaTxt;
 
 			localStorage.setItem('meds_v1', JSON.stringify(meds));
 			if (navigator.vibrate) navigator.vibrate(50); // Vibración corta de 50ms
