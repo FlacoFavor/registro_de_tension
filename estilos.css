@@ -36,7 +36,7 @@
         .btn-tool { flex: 1; background: white; border: 1px solid #e2e8f0; padding: 8px; border-radius: 10px; font-weight: 700; color: #64748b; cursor: pointer; }
 /* -----*/
 
-        .card2 { height: 100vh; position: fixed; bottom: -100vh; left: 50%; transform: translateX(-50%); overflow: scroll; background: #def; padding: 10px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 100%; max-width: 450px; transition: bottom 1s ease; }
+        .card2 { height: 100dvh; position: fixed; bottom: -100vh; left: 50%; transform: translateX(-50%); overflow: scroll; background: #def; padding: 10px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 100%; max-width: 450px; transition: bottom 1s ease; }
         
         /* Formulario */
         .form { display: grid; overflow: hidden; max-height: 0; transition: max-height 1s ease-out; gap: 10px; border-bottom: 2px solid #f1f1f1; margin-bottom: 20px; }
