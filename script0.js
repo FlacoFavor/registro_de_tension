@@ -34,28 +34,47 @@
     }
 
     function render() {
-        const logs = JSON.parse(localStorage.getItem('health_final_v1') || '[]');
-        const container = document.getElementById('log-list');
-        container.innerHTML = ''; 
+		const logs = JSON.parse(localStorage.getItem('health_final_v1') || '[]');
+		const container = document.getElementById('log-list');
+		container.innerHTML = '';
 
-        [...logs].reverse().forEach(r => {
-            const st = getStatus(r.s, r.d);
-            const dateShort = r.f.split('-').slice(1).reverse().join('/');
-            container.innerHTML += `
-				<div>
-                <div class="log-item">
-                    <span class="col-time">${dateShort} ${r.h}</span>
-                    <span class="col-data">${r.s}/${r.d}<span class="col-pul">${r.p}</span></span>
-                    <span class="col-note"></span>
-                    <span class="badge ${st.class}">${st.label}</span>
-                    <span style="color:#def; cursor:pointer; display: inline-block; text-align: center; font-weight: bold;width: 1.5rem; height: 1.5rem; line-height: 1; font-size: 150%; border-radius: 100%; background-color: #ab2c2c;
-" onclick="del(${r.id})">×</span>
-                </div>
-				${ r.n ? `<span class="col-note">${r.n}</span>` : '' }
+		// 1. Agrupar registros por "Mes Año"
+		const groups = {};
+		const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+		// Invertimos el orden para que lo más reciente aparezca arriba
+		[...logs].reverse().forEach(r => {
+			const dateObj = new Date(r.f + 'T' + r.h);
+			const groupKey = `${months[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
+			
+			if (!groups[groupKey]) groups[groupKey] = [];
+			groups[groupKey].push(r);
+		});
+
+		// 2. Dibujar los grupos y sus registros
+		for (const monthYear in groups) {
+			// Añadir cabecera del mes
+			container.innerHTML += `<div class="month-header" style="background:#456; color:#fff; padding:5px 10px; margin:15px 0 5px; border-radius:4px; font-size:0.9rem; font-weight:bold;">${monthYear}</div>`;
+
+			groups[monthYear].forEach(r => {
+				const st = getStatus(r.s, r.d);
+				const dateShort = r.f.split('-').reverse().slice(0, 1); // Solo el día si ya tenemos el mes arriba
 				
-				</div>`;
-        });
-    };//${if(r.n) {<span class="col-note">${r.n || ''}</span>}}
+				container.innerHTML += `
+					<div style="margin-bottom: 8px;">
+						<div class="log-item">
+							<span class="col-time">${r.f.split('-')[2]} - ${r.h}</span>
+							<span class="col-data">${r.s}/${r.d}<span class="col-pul">${r.p}</span></span>
+							<span class="col-note"></span>
+							<span class="badge ${st.class}">${st.label}</span>
+							<span onclick="del(${r.id})" style="color:#def; cursor:pointer; display: inline-block; text-align: center; font-weight: bold; width: 1.5rem; height: 1.5rem; line-height: 1; font-size: 150%; border-radius: 100%; background-color: #ab2c2c;">×</span>
+						</div>
+						${ r.n ? `<div class="col-note" style="font-size:0.85rem; color:#aaa; margin-left:10px;">${r.n}</div>` : '' }
+					</div>`;
+			});
+		}
+	};
+
     function del(id) {
         if(confirm("¿Borrar?")) {
             let l = JSON.parse(localStorage.getItem('health_final_v1')).filter(r => r.id !== id);
