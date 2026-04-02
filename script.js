@@ -351,7 +351,7 @@
 			}
 
 			meds[idx].tomas = (meds[idx].tomas || 0) + 1;
-			meds[idx].ultima = '10:00'//horaTxt;
+			meds[idx].ultima = horaTxt;
 
 			localStorage.setItem('meds_v1', JSON.stringify(meds));
 			if (navigator.vibrate) navigator.vibrate(50); // Vibración corta de 50ms
