@@ -169,7 +169,10 @@
 	function importCSV() {
 		const input = document.createElement('input');
 		input.type = 'file';
-		input.accept = '.csv';
+		//input.accept = '.csv';
+		
+// En lugar de solo '.csv', añade el tipo MIME y texto genérico
+input.accept = ".csv, text/csv, text/plain, application/vnd.ms-excel";
 
 		input.onchange = e => {
 			const file = e.target.files[0];
