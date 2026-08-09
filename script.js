@@ -330,38 +330,46 @@ input.accept = ".csv, text/csv, text/plain, application/vnd.ms-excel";
 			renderMeds();
 		}
 	};
-
-
 	
 	function registrarToma(idRecibido) {
-		let meds = JSON.parse(localStorage.getItem('meds_v1') || '[]');
-		const idx = meds.findIndex(m => Number(m.id) === Number(idRecibido));
+    let meds = JSON.parse(localStorage.getItem('meds_v1') || '[]');
+    const idx = meds.findIndex(m => Number(m.id) === Number(idRecibido));
 
-		if (idx !== -1) {
-			const ahora = new Date();
-			// Formato limpio HH:MM (ejemplo 08:05)
-			const horaTxt = ahora.getHours().toString().padStart(2, '0') + ':' +  ahora.getMinutes().toString().padStart(2, '0');
-			
-			let historial = JSON.parse(localStorage.getItem('tomas_v1') || '[]');
-			historial.unshift({ nombre: meds[idx].nombre, hora: horaTxt }); // Añade al inicio
-			if (historial.length > 20) historial.pop(); // Limita a 20 registros
-			localStorage.setItem('tomas_v1', JSON.stringify(historial));
+    if (idx === -1) return;
 
-			// Bloqueo de seguridad 10 min
-			if (meds[idx].ultima && (obtenerMinutos(horaTxt) - obtenerMinutos(meds[idx].ultima)) < 10) {
-				 alert("Espera 10 min entre tomas.");
-				 return;
-			}
+    const ahora = new Date();
+    const horaTxt = ahora.getHours().toString().padStart(2, '0') + ':' + ahora.getMinutes().toString().padStart(2, '0');
+    
+    // VALIDACIÓN DE SEGURIDAD CON SALIDA INMEDIATA (RETURN)
+    if (meds[idx].ultima) {
+        const difMinutos = obtenerMinutos(horaTxt) - obtenerMinutos(meds[idx].ultima);
+        // Ajuste por si la última toma fue antes de las 00:00 y la nueva es después
+        const diferenciaReal = difMinutos < 0 ? difMinutos + 1440 : difMinutos;
+        
+        if (diferenciaReal < 10) {
+             alert("Acción bloqueada. Por seguridad debes esperar al menos 10 minutos entre tomas del mismo medicamento.");
+             return; // <-- ESTE RETURN IMPORTANTE: Detiene el guardado por completo
+        }
+    }
 
-			meds[idx].tomas = (meds[idx].tomas || 0) + 1;
-			meds[idx].ultima = horaTxt;
+    // SI PASA EL BLOQUEO: Recién aquí modificamos las bases de datos locales
+    let historial = JSON.parse(localStorage.getItem('tomas_v1') || '[]');
+    historial.unshift({ nombre: meds[idx].nombre, hora: horaTxt }); 
+    if (historial.length > 20) historial.pop(); 
+    localStorage.setItem('tomas_v1', JSON.stringify(historial));
 
-			localStorage.setItem('meds_v1', JSON.stringify(meds));
-			if (navigator.vibrate) navigator.vibrate(50); // Vibración corta de 50ms
-			renderMeds();
-			renderHistorial();
-		}
-	};
+    // Modificamos el contador de la medicina específica
+    meds[idx].tomas = (meds[idx].tomas || 0) + 1;
+    meds[idx].ultima = horaTxt;
+    localStorage.setItem('meds_v1', JSON.stringify(meds));
+
+    // Respuesta física en el terminal móvil
+    if (navigator.vibrate) navigator.vibrate(50); 
+    
+    // Repintar interfaz gráfica
+    renderMeds();
+    renderHistorial();
+};
 	
 	function renderHistorial() {
 		const historial = JSON.parse(localStorage.getItem('tomas_v1') || '[]');
