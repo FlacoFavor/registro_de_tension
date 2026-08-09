@@ -1,19 +1,22 @@
-const cacheName = 'tension-v1.2.11';
+const cacheName = 'tension-v1.2.1';
 
-// Listado de recursos esenciales para que la app funcione 100% offline
+// 1. Listado de recursos esenciales para que la app funcione offline
 const assets = [
   './',
   './index.html',
   './estilos.css',
   './script.js',
-  './manifest.json'
+  './manifest.json',
+  './icono.svg'
 ];
 
-// 1. INSTALACIÓN: Almacena los archivos estáticos en el dispositivo
+// Configura AQUÍ las dos horas exactas de tus avisos (ÚNICO SITIO CENTRALIZADO)
+const ALARMA_MANANA = "20:05";
+const ALARMA_NOCHE  = "20:15";
+
+// 2. INSTALACIÓN: Almacena los archivos estáticos en el dispositivo
 self.addEventListener('install', e => {
-  // Fuerza al Service Worker actual a convertirse en el activo de inmediato
   self.skipWaiting();
-  
   e.waitUntil(
     caches.open(cacheName).then(cache => {
       console.log('[Service Worker] Guardando recursos estáticos en caché');
@@ -22,34 +25,30 @@ self.addEventListener('install', e => {
   );
 });
 
-// 2. ACTIVACIÓN: Elimina cachés antiguas de versiones anteriores automáticamente
+// 3. ACTIVACIÓN: Elimina cachés antiguas automáticamente al actualizar versión
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys => {
       return Promise.all(
         keys.map(key => {
           if (key !== cacheName) {
-            console.log('[Service Worker] Eliminando caché antigua obsoleta:', key);
+            console.log('[Service Worker] Eliminando caché antigua:', key);
             return caches.delete(key);
           }
         })
       );
-    }).then(() => self.clients.claim()) // Toma el control de las pestañas abiertas inmediatamente
+    }).then(() => self.clients.claim())
   );
 });
 
-// 3. INTERCEPCIÓN DE PETICIONES: Estrategia Cache First (Offline)
+// 4. INTERCEPCIÓN DE PETICIONES: Estrategia Cache First (Offline)
 self.addEventListener('fetch', e => {
   e.respondWith(
     caches.match(e.request).then(cachedResponse => {
-      // Si el archivo está en la caché, lo sirve al instante sin usar internet
       if (cachedResponse) {
         return cachedResponse;
       }
-
-      // Si no está en caché, lo descarga de la red de forma normal
       return fetch(e.request).catch(() => {
-        // Fallback de emergencia si falla la red e internet está desconectado del todo
         if (e.request.mode === 'navigate') {
           return caches.match('./index.html');
         }
@@ -58,10 +57,9 @@ self.addEventListener('fetch', e => {
   );
 });
 
-// 4. INTERACCIÓN CON NOTIFICACIONES
+// 5. INTERACCIÓN CON NOTIFICACIONES: Abre la app al pulsar la alerta
 self.addEventListener('notificationclick', e => {
-  e.notification.close(); // Cierra el banner visual flotante
-
+  e.notification.close();
   e.waitUntil(
     clients.matchAll({ type: 'window', includeUnassigned: true }).then(windowClients => {
       for (let i = 0; i < windowClients.length; i++) {
@@ -77,22 +75,15 @@ self.addEventListener('notificationclick', e => {
   );
 });
 
-// ==========================================
-// RELOJ DE CONTROL DESDE SEGUNDO PLANO (SERVICE WORKER)
-// ==========================================
-
-const HORARIO_SW_MANANA = "19:10"; 
-const HORARIO_SW_NOCHE  = "19:15";
-
+// 6. RELOJ ÚNICO DE CONTROL EN SEGUNDO PLANO
 setInterval(() => {
-  // Comprobamos si el usuario dio permisos en la aplicación
   if (self.Notification && self.Notification.permission === 'granted') {
     
     const ahora = new Date();
     const horaActual = ahora.getHours().toString().padStart(2, '0') + ':' + ahora.getMinutes().toString().padStart(2, '0');
 
-    // Control Alarma 1
-    if (horaActual === HORARIO_SW_MANANA) {
+    // Control Alarma 1 (Mañana)
+    if (horaActual === ALARMA_MANANA) {
       self.registration.showNotification("☀️ Control de la Mañana", {
         body: "Es hora de tu toma de tensión matutina. Recuerda reposar 5 minutos antes.",
         icon: './icono.svg',
@@ -103,8 +94,8 @@ setInterval(() => {
       });
     }
 
-    // Control Alarma 2
-    if (horaActual === HORARIO_SW_NOCHE) {
+    // Control Alarma 2 (Noche)
+    if (horaActual === ALARMA_NOCHE) {
       self.registration.showNotification("🌙 Control de la Noche", {
         body: "Momento de tu toma de tensión nocturna. No olvides registrar tus valores.",
         icon: './icono.svg',
@@ -115,5 +106,6 @@ setInterval(() => {
       });
     }
   }
-}, 60000); // Revisa la hora del teléfono cada 60 segundos
+}, 60000); // Revisa la hora del teléfono cada 60 segundos de forma interna
+
 
