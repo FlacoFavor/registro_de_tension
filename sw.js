@@ -1,4 +1,4 @@
-const cacheName = 'tension-v1.2.1';
+const cacheName = 'tension-v1.2.12';
 
 // 1. Listado de recursos esenciales para que la app funcione offline
 const assets = [
@@ -12,7 +12,7 @@ const assets = [
 
 // Configura AQUÍ las dos horas exactas de tus avisos (ÚNICO SITIO CENTRALIZADO)
 const ALARMA_MANANA = "20:20";
-const ALARMA_NOCHE  = "20:15";
+const ALARMA_NOCHE  = "20:17";
 
 // 2. INSTALACIÓN: Almacena los archivos estáticos en el dispositivo
 self.addEventListener('install', e => {
