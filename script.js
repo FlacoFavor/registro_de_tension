@@ -425,8 +425,8 @@ input.accept = ".csv, text/csv, text/plain, application/vnd.ms-excel";
 // ==========================================
 
 // Configura AQUÍ las dos horas exactas de tus avisos (Formato HH:MM)
-const HORARIO_MANANA = "19:10"; 
-const HORARIO_NOCHE  = "19:15";
+const HORARIO_MANANA = "08:30"; 
+const HORARIO_NOCHE  = "20:30";
 
 function solicitarPermisoNotificaciones() {
     if (!('Notification' in window)) {
@@ -453,9 +453,9 @@ function enviarNotificacionTension(titulo, mensaje) {
         navigator.serviceWorker.ready.then(registro => {
             registro.showNotification(titulo, {
                 body: mensaje,
-                icon: './icono.svg',
-                badge: './icono.svg',
-                vibrate: [200, 100, 200], 
+                icon: './icono-192.png',
+                badge: './icono-192.png',
+                vibrate:, 
                 tag: 'recordatorio-tension-diario', 
                 renotify: true
             });
@@ -490,6 +490,15 @@ function iniciarRelojRecordatorios() {
         }
     }, 60000);
 }
+
+// Inicialización automatizada al abrir la app
+window.addEventListener('DOMContentLoaded', () => {
+    if ('Notification' in window && Notification.permission === 'granted') {
+        const btn = document.getElementById('btn-permiso-notif');
+        if (btn) btn.style.display = 'none';
+        iniciarRelojRecordatorios();
+    }
+});
 
 // Inicialización automatizada al abrir la app
 window.addEventListener('DOMContentLoaded', () => {
