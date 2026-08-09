@@ -11,7 +11,7 @@ const assets = [
 ];
 
 // Configura AQUÍ las dos horas exactas de tus avisos (ÚNICO SITIO CENTRALIZADO)
-const ALARMA_MANANA = "20:05";
+const ALARMA_MANANA = "20:20";
 const ALARMA_NOCHE  = "20:15";
 
 // 2. INSTALACIÓN: Almacena los archivos estáticos en el dispositivo
