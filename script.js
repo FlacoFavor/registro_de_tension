@@ -425,8 +425,8 @@ input.accept = ".csv, text/csv, text/plain, application/vnd.ms-excel";
 // ==========================================
 
 // Configura AQUÍ las dos horas exactas de tus avisos (Formato HH:MM)
-const HORARIO_MANANA = "19:00"; 
-const HORARIO_NOCHE  = "19:05";
+const HORARIO_MANANA = "19:10"; 
+const HORARIO_NOCHE  = "19:15";
 
 function solicitarPermisoNotificaciones() {
     if (!('Notification' in window)) {
@@ -453,8 +453,8 @@ function enviarNotificacionTension(titulo, mensaje) {
         navigator.serviceWorker.ready.then(registro => {
             registro.showNotification(titulo, {
                 body: mensaje,
-                icon: './icono-192.png',
-                badge: './icono-192.png',
+                icon: './icono.svg',
+                badge: './icono.svg',
                 vibrate: [200, 100, 200], 
                 tag: 'recordatorio-tension-diario', 
                 renotify: true
