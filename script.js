@@ -425,8 +425,8 @@ input.accept = ".csv, text/csv, text/plain, application/vnd.ms-excel";
 // ==========================================
 
 // Configura AQUÍ las dos horas exactas de tus avisos (Formato HH:MM)
-const HORARIO_MANANA = "18:38"; 
-const HORARIO_NOCHE  = "18:40";
+const HORARIO_MANANA = "18:45"; 
+const HORARIO_NOCHE  = "18:50";
 
 function solicitarPermisoNotificaciones() {
     if (!('Notification' in window)) {
