@@ -1,4 +1,4 @@
-	function obtenerMinutos(horaStr) {
+   function obtenerMinutos(horaStr) {
 		if (!horaStr) return 9999; 
 		const [h, m] = horaStr.split(':').map(Number);
 		return (h * 60) + m;
@@ -419,54 +419,6 @@ input.accept = ".csv, text/csv, text/plain, application/vnd.ms-excel";
 		// Feedback visual opcional
 		alert("Datos reiniciados correctamente.");
 	};
-
-// ==========================================
-// 10. CONFIGURACIÓN DE PERMISOS DE ALERTA (SIN HORAS DUPLICADAS)
-// ==========================================
-
-function solicitarPermisoNotificaciones() {
-    if (!('Notification' in window)) {
-        alert("Tu dispositivo o navegador actual no soporta notificaciones.");
-        return;
-    }
-
-    Notification.requestPermission().then(permiso => {
-        if (permiso === 'granted') {
-            document.getElementById('btn-permiso-notif').style.display = 'none';
-            
-            // Enviamos el mensaje de confirmación sin escribir las horas fijas a mano
-            enviarNotificacionTension(
-                "Tensión Hoy 🩸", 
-                "¡Recordatorios diarios activados correctamente! Ya puedes salir de la app."
-            );
-        } else {
-            alert("Permiso denegado. No podré avisarte para medir tu presión.");
-        }
-    });
-}
-
-function enviarNotificacionTension(titulo, mensaje) {
-    if (Notification.permission === 'granted' && 'serviceWorker' in navigator) {
-        navigator.serviceWorker.ready.then(registro => {
-            registro.showNotification(titulo, {
-                body: mensaje,
-                icon: './icono.svg',
-                badge: './icono.svg',
-                vibrate: [200, 100, 200], 
-                tag: 'recordatorio-tension-diario', 
-                renotify: true
-            });
-        });
-    }
-}
-
-// Inicialización automatizada al abrir la app
-window.addEventListener('DOMContentLoaded', () => {
-    if ('Notification' in window && Notification.permission === 'granted') {
-        const btn = document.getElementById('btn-permiso-notif');
-        if (btn) btn.style.display = 'none';
-    }
-});
 	
 	// Al final del script
 	setNow();
