@@ -455,7 +455,7 @@ function enviarNotificacionTension(titulo, mensaje) {
                 body: mensaje,
                 icon: './icono-192.png',
                 badge: './icono-192.png',
-                vibrate:, 
+                vibrate: [200, 100, 200], 
                 tag: 'recordatorio-tension-diario', 
                 renotify: true
             });
