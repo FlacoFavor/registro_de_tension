@@ -1,4 +1,4 @@
-const cacheName = 'tension-v1.2.2';
+const cacheName = 'tension-v1.2.3';
 
 // Listado de recursos esenciales para que la app funcione 100% offline
 const assets = [
@@ -57,3 +57,23 @@ self.addEventListener('fetch', e => {
     })
   );
 });
+
+// 4. INTERACCIÓN CON NOTIFICACIONES
+self.addEventListener('notificationclick', e => {
+  e.notification.close(); // Cierra el banner visual flotante
+
+  e.waitUntil(
+    clients.matchAll({ type: 'window', includeUnassigned: true }).then(windowClients => {
+      for (let i = 0; i < windowClients.length; i++) {
+        const client = windowClients[i];
+        if (client.url.includes('index.html') && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow('./index.html');
+      }
+    })
+  );
+});
+
