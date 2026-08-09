@@ -1,3 +1,20 @@
+   function obtenerMinutos(horaStr) {
+		if (!horaStr) return 9999; 
+		const [h, m] = horaStr.split(':').map(Number);
+		return (h * 60) + m;
+	}
+
+	function esReciente(horaUltima) {
+		if (!horaUltima) return false;
+		const ahora = new Date();
+		const minAhora = (ahora.getHours() * 60) + ahora.getMinutes();
+		const minToma = obtenerMinutos(horaUltima);
+		
+		let dif = minAhora - minToma;
+		if (dif < 0) dif += 1440; // Corrección si la toma fue ayer antes de medianoche
+		return dif < 240; // Menos de 4 horas (240 min)
+	}
+
     // Función para poner fecha y hora actual
     const setNow = () => {
         const d = new Date();
@@ -33,48 +50,93 @@
         render();
     }
 
-    function render() {
+	// 1. Inyectamos solo la ESTRUCTURA del despliegue (sin colores de fondo raros)
+	const injectBaseStyles = () => {
+		if (document.getElementById('health-base-styles')) return;
+		const style = document.createElement('style');
+		style.id = 'health-base-styles';
+		style.innerHTML = `
+			.month-group { margin-bottom: 10px; border-bottom: 1px solid #444; }
+			.month-header { 
+				cursor: pointer; padding: 10px;
+				background: rgba(255,255,255,0.05); border-radius: 5px;
+				color: #eee;
+				background: #456;
+			}
+			.month-content {
+				display: none;
+				padding-top: 10px;
+				padding: 0 .5rem;
+				background: #eee;
+			}
+			/* La magia: si el padre tiene .is-open, muestra el hijo */
+			.month-group.is-open .month-content { display: block; }
+			.arrow-icon { 
+				display: inline-block; 
+				transition: transform 0.3s ease; 
+				
+				width: 1.5rem; 
+				text-align: center;
+				transform: rotate(-90deg);
+			}
+			.is-open .arrow-icon {
+				transform: rotate(0deg); opacity: 1;
+			}
+		`;
+		document.head.appendChild(style);
+	};
+
+	function render() {
+		injectBaseStyles();
 		const logs = JSON.parse(localStorage.getItem('health_final_v1') || '[]');
 		const container = document.getElementById('log-list');
 		container.innerHTML = '';
 
-		// 1. Agrupar registros por "Mes Año"
-		const groups = {};
 		const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+		const groups = {};
 
-		// Invertimos el orden para que lo más reciente aparezca arriba
+		// Agrupar (del más nuevo al más viejo)
 		[...logs].reverse().forEach(r => {
-			const dateObj = new Date(r.f + 'T' + r.h);
-			const groupKey = `${months[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
-			
-			if (!groups[groupKey]) groups[groupKey] = [];
-			groups[groupKey].push(r);
+			const d = new Date(r.f + 'T' + r.h);
+			const key = `${months[d.getMonth()]} ${d.getFullYear()}`;
+			if (!groups[key]) groups[key] = [];
+			groups[key].push(r);
 		});
 
-		// 2. Dibujar los grupos y sus registros
-		for (const monthYear in groups) {
-			// Añadir cabecera del mes
-			container.innerHTML += `<div class="month-header" style="background:#456; color:#fff; padding:5px 10px; margin:15px 0 5px; border-radius:4px; font-size:0.9rem; font-weight:bold;">${monthYear}</div>`;
+		Object.keys(groups).forEach((monthYear, index) => {
+			const openClass = index === 0 ? 'is-open' : ''; // Solo abre el primero por defecto
+
+			let html = `
+				<div class="month-group ${openClass}">
+					<div class="month-header" onclick="this.parentElement.classList.toggle('is-open')">
+						<span class="arrow-icon">▼</span>
+						<span style="font-weight: bold;">${monthYear}</span>
+					</div>
+					<div class="month-content">`;
 
 			groups[monthYear].forEach(r => {
 				const st = getStatus(r.s, r.d);
-				const dateShort = r.f.split('-').reverse().slice(0, 1); // Solo el día si ya tenemos el mes arriba
-				
-				container.innerHTML += `
-					<div style="margin-bottom: 8px;">
+				// Formato de fecha día/mes
+				const dateShort = r.f.split('-').slice(1).reverse().join('/');
+
+				html += `
+					<div>
 						<div class="log-item">
-							<span class="col-time">${r.f.split('-')[2]} - ${r.h}</span>
+							<span class="col-time">${dateShort} ${r.h}</span>
 							<span class="col-data">${r.s}/${r.d}<span class="col-pul">${r.p}</span></span>
 							<span class="col-note"></span>
 							<span class="badge ${st.class}">${st.label}</span>
-							<span onclick="del(${r.id})" style="color:#def; cursor:pointer; display: inline-block; text-align: center; font-weight: bold; width: 1.5rem; height: 1.5rem; line-height: 1; font-size: 150%; border-radius: 100%; background-color: #ab2c2c;">×</span>
+							<span style="color:#fff; cursor:pointer; font-weight:bold; width: 1.5rem; height: 1.5rem; line-height: 1.2; text-align:center; border-radius: 50%; background: #ab2c2c;" onclick="del(${r.id})">×</span>
 						</div>
-						${ r.n ? `<div class="col-note" style="font-size:0.85rem; color:#aaa; margin-left:10px;">${r.n}</div>` : '' }
+						${ r.n ? `<div class="col-note" style="margin-left: 10px; font-size: 0.9em; opacity: 0.7;">${r.n}</div>` : '' }
 					</div>`;
 			});
-		}
-	};
 
+			html += `</div></div>`;
+			container.innerHTML += html;
+		});
+	};
+	
     function del(id) {
         if(confirm("¿Borrar?")) {
             let l = JSON.parse(localStorage.getItem('health_final_v1')).filter(r => r.id !== id);
@@ -85,19 +147,287 @@
     function clearAll() { if(confirm("¿Reset total?")) { localStorage.removeItem('health_final_v1'); render(); }}
 
     function exportCSV() {
-        const logs = JSON.parse(localStorage.getItem('health_final_v1') || '[]');
-        let csv = "Fecha;Hora;Sistolica;Diastolica;Pulso;Nota\n";
-        logs.forEach(r => csv += `${r.f};${r.h};${r.s};${r.d};${r.p};${r.n}\n`);
-        const blob = new Blob(["\ufeff" + csv], { type: 'text/csv' });
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = `salud_hoy.csv`; a.click();
-    }
-	
-	// Registro del Service Worker para que sea instalable
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js');
-  }
+    const logs = JSON.parse(localStorage.getItem('health_final_v1') || '[]');
+    if (logs.length === 0) return alert("No hay datos para exportar.");
 
-    setNow();
-    render();
+    // Añadimos comillas "" a la Nota por si el usuario escribió un ";" dentro.
+    let csv = "Fecha;Hora;Sistolica;Diastolica;Pulso;Nota\n";
+    logs.forEach(r => {
+        csv += `${r.f};${r.h};${r.s};${r.d};${r.p};"${r.n || ''}"\n`;
+    });
+
+    const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    // Nombre de archivo: salud_DD-MM-YYYY.csv
+    a.download = `salud_${new Date().toISOString().slice(0,10).split('-').reverse().join('-')}.csv`;
+    a.click();
+    URL.revokeObjectURL(url); // Liberar memoria
+}
+
+	function importCSV() {
+		const input = document.createElement('input');
+		input.type = 'file';
+		//input.accept = '.csv';
+		
+// En lugar de solo '.csv', añade el tipo MIME y texto genérico
+input.accept = ".csv, text/csv, text/plain, application/vnd.ms-excel";
+
+		input.onchange = e => {
+			const file = e.target.files[0];
+			const reader = new FileReader();
+
+			reader.onload = event => {
+				try {
+					const lines = event.target.result.split('\n').filter(line => line.trim() !== "");
+					const rows = lines.slice(1); // Ignorar cabecera
+
+					const importedLogs = rows.map((line, index) => {
+						// Separamos y limpiamos comillas de las notas
+						let [f, h, s, d, p, n] = line.split(';').map(v => v.replace(/^"|"$/g, ''));
+						
+						return { 
+							id: Date.now() + index, // IMPORTANTE: Generar ID para que funcione el botón borrar
+							f, h, 
+							s: parseInt(s), 
+							d: parseInt(d), 
+							p: parseInt(p), 
+							n: n || "" 
+						};
+					});
+
+						// texto al unirlos - ¿Deseas sumarlos a tus datos actuales?
+					if (confirm(`Se han encontrado ${importedLogs.length} registros. ¿Deseas importarlos?`)) {
+						const currentLogs = JSON.parse(localStorage.getItem('health_final_v1') || '[]');
+/*
+						// Unimos, ordenamos por fecha/hora y guardamos
+						const totalLogs = [...currentLogs, ...importedLogs];
+						totalLogs.sort((a,b) => new Date(a.f+'T'+a.h) - new Date(b.f+'T'+b.h));
+*/
+						// para unirlos cambiar importedLogs por totalLogs
+						localStorage.setItem('health_final_v1', JSON.stringify(importedLogs));
+						alert("Importación completada con éxito.");
+						render(); // Actualiza la lista sin recargar toda la página
+					}
+				} catch (err) {
+					alert("Error: El formato del archivo no es válido.");
+				}
+			};
+			reader.readAsText(file, "UTF-8");
+		};
+		input.click();
+	};
+	
+// ----------
+
+	function mostrar() {
+		document.querySelector('.card2').style.bottom = 0;
+	};
+	function cerrar() {
+		document.querySelector('.card2').style.bottom = '-100vh';
+		document.getElementById('nombre').value = '';
+        document.getElementById('uso').value = '';
+        document.getElementById('nota').value = '';
+		document.getElementById('momento').value = 'mañana';
+		document.querySelector('.form').style.maxHeight = 0;
+	};
+	function anadir() {
+		document.querySelector('.form').style.maxHeight = '500px';
+	};
+	
+	function agregar() {
+		const nombre = document.getElementById('nombre').value;
+		const uso = document.getElementById('uso').value;
+		const nota = document.getElementById('nota').value;
+		const momento = document.getElementById('momento').value;
+		
+		if (!nombre) return alert("Nombre obligatorio");
+
+		const nuevoMed = {
+			id: Date.now(), // Genera un ID único basado en el tiempo
+			nombre: nombre,
+			uso: uso,
+			nota: nota,
+			momento: momento,
+			tomas: 0,
+			ultima: ""
+		};
+
+		let meds = JSON.parse(localStorage.getItem('meds_v1') || '[]');
+		meds.push(nuevoMed);
+		localStorage.setItem('meds_v1', JSON.stringify(meds));
+
+		// Limpiar campos y cerrar
+		document.getElementById('nombre').value = '';
+		document.getElementById('uso').value = '';
+		document.getElementById('nota').value = '';
+		document.getElementById('momento').value = 'mañana';
+		document.querySelector('.form').style.maxHeight = 0;
+
+		renderMeds();
+	};
+	
+	function renderMeds() {
+		document.querySelectorAll('.lista').forEach(l => l.innerHTML = '');
+		const meds = JSON.parse(localStorage.getItem('meds_v1') || '[]');
+
+		meds.forEach(m => {
+			const contenedor = document.querySelector(`#g-${m.momento} .lista`);
+			if (!contenedor) return;
+
+			// Comprobamos si la toma fue hace menos de 4 horas
+			const reciente = esReciente(m.ultima);
+
+			const div = document.createElement('div');
+			div.className = 'item';
+			div.innerHTML = `
+				<div style="display:flex; align-items:center;">
+					${m.momento === 'sos' ? `
+					<div class="sos-controls">
+						<button class="btn-plus" onclick="registrarToma(${m.id})">+</button>
+						<span class="count-text">${m.tomas || 0} tomas</span>
+					</div>` : ''}
+					<div class="item-info">
+						<b>${m.nombre}</b>
+						<span class="uso">💊 ${m.uso || 'Sin uso'}</span>
+						<!-- AQUÍ EL CAMBIO DE COLOR -->
+						<div class="hora-toma" style="width: 65vw ;display: flex; justify-content: space-between;">
+							<span style="color: ${reciente ? '#ff3b3b' : '#888'}; font-weight: ${reciente ? 'bold' : 'normal'}">
+								${m.ultima ? 'Última: ' + m.ultima : ''} ${reciente ? '⚠️' : ''}
+							</span>
+							<span style="color: ${reciente ? '#06c30e' : '#888'}; font-weight: ${reciente ? 'bold' : 'normal'}">
+								${m.ultima ? 'Próxima: ' + proxima(m.ultima) : ''} ${reciente ? '🕒' : ''}
+							</span>
+						</div>
+					</div>
+				</div>
+				<button class="btn-del" onclick="borrarMed(${m.id})">✕</button>
+			`;
+			contenedor.appendChild(div);
+		});
+	};
+	
+	function proxima(horaString) {
+		const [horas, minutos] = horaString.split(':');
+		const ahora = new Date();
+		const fechaEspecifica = new Date(
+			ahora.getFullYear(),
+			ahora.getMonth(),
+			ahora.getDate(),
+			parseInt(horas) + 8,
+			minutos
+		);
+		return fechaEspecifica.getHours().toString().padStart(2, '0') + ':' +  fechaEspecifica.getMinutes().toString().padStart(2, '0');
+	};
+
+	// Función para borrar físicamente del Storage
+	function borrarMed(id) {
+		if(confirm("¿Eliminar este medicamento definitivamente?")) {
+			let meds = JSON.parse(localStorage.getItem('meds_v1') || '[]');
+			meds = meds.filter(m => m.id !== id);
+			localStorage.setItem('meds_v1', JSON.stringify(meds));
+			renderMeds();
+		}
+	};
+	
+	function registrarToma(idRecibido) {
+    let meds = JSON.parse(localStorage.getItem('meds_v1') || '[]');
+    const idx = meds.findIndex(m => Number(m.id) === Number(idRecibido));
+
+    if (idx === -1) return;
+
+    const ahora = new Date();
+    const horaTxt = ahora.getHours().toString().padStart(2, '0') + ':' + ahora.getMinutes().toString().padStart(2, '0');
+    
+    // VALIDACIÓN DE SEGURIDAD CON SALIDA INMEDIATA (RETURN)
+    if (meds[idx].ultima) {
+        const difMinutos = obtenerMinutos(horaTxt) - obtenerMinutos(meds[idx].ultima);
+        // Ajuste por si la última toma fue antes de las 00:00 y la nueva es después
+        const diferenciaReal = difMinutos < 0 ? difMinutos + 1440 : difMinutos;
+        
+        if (diferenciaReal < 10) {
+             alert("Acción bloqueada. Por seguridad debes esperar al menos 10 minutos entre tomas del mismo medicamento.");
+             return; // <-- ESTE RETURN IMPORTANTE: Detiene el guardado por completo
+        }
+    }
+
+    // SI PASA EL BLOQUEO: Recién aquí modificamos las bases de datos locales
+    let historial = JSON.parse(localStorage.getItem('tomas_v1') || '[]');
+    historial.unshift({ nombre: meds[idx].nombre, hora: horaTxt }); 
+    if (historial.length > 20) historial.pop(); 
+    localStorage.setItem('tomas_v1', JSON.stringify(historial));
+
+    // Modificamos el contador de la medicina específica
+    meds[idx].tomas = (meds[idx].tomas || 0) + 1;
+    meds[idx].ultima = horaTxt;
+    localStorage.setItem('meds_v1', JSON.stringify(meds));
+
+    // Respuesta física en el terminal móvil
+    if (navigator.vibrate) navigator.vibrate(50); 
+    
+    // Repintar interfaz gráfica
+    renderMeds();
+    renderHistorial();
+};
+	
+	function renderHistorial() {
+		const historial = JSON.parse(localStorage.getItem('tomas_v1') || '[]');
+		const log = document.getElementById('log-lista');
+		if (!log) return;
+
+		log.innerHTML = ""; // Limpiar antes de dibujar
+		historial.forEach(entry => {
+			const div = document.createElement('div');
+			div.className = 'log-item2';
+			div.innerHTML = `<span><b>${entry.nombre}</b></span> <span>${entry.hora}</span>`;
+			log.appendChild(div);
+		});
+	};
+
+
+    function reiniciarContadores() {
+		// 1. Doble confirmación de seguridad
+		const confirmar1 = confirm("¿Quieres poner a cero todos los contadores?");
+		if (!confirmar1) return;
+		
+		const confirmar2 = confirm("ESTO BORRARÁ TAMBIÉN EL HISTORIAL. ¿Estás seguro?");
+		if (!confirmar2) return;
+
+		// 2. Limpiar el historial del Storage
+		localStorage.removeItem('tomas_v1');
+
+		// 3. Resetear contadores en la lista de medicamentos
+		let meds = JSON.parse(localStorage.getItem('meds_v1') || '[]');
+		
+		// Recorremos cada medicina y limpiamos sus datos de toma
+		const medsReseteados = meds.map(m => {
+			return {
+				...m,
+				tomas: 0,    // Volver a cero
+				ultima: ""   // Quitar la última hora
+			};
+		});
+
+		// 4. Guardar la lista limpia en Storage
+		localStorage.setItem('meds_v1', JSON.stringify(medsReseteados));
+
+		// 5. Actualizar la interfaz completa
+		renderMeds();
+		renderHistorial();
+		
+		// Feedback visual opcional
+		alert("Datos reiniciados correctamente.");
+	};
+	
+	// Al final del script
+	setNow();
+	render();      // Tus registros de tensión
+	renderMeds();  // Tus medicamentos guardados
+	renderHistorial(); // Historial de tomas SOS
+
+
+	// Registro del Service Worker para que sea instalable
+	  if ('serviceWorker' in navigator) {
+		navigator.serviceWorker.register('sw.js');
+	  }
