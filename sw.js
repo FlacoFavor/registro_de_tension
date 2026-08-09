@@ -77,3 +77,43 @@ self.addEventListener('notificationclick', e => {
   );
 });
 
+// ==========================================
+// RELOJ DE CONTROL DESDE SEGUNDO PLANO (SERVICE WORKER)
+// ==========================================
+
+const HORARIO_SW_MANANA = "19:10"; 
+const HORARIO_SW_NOCHE  = "19:15";
+
+setInterval(() => {
+  // Comprobamos si el usuario dio permisos en la aplicación
+  if (self.Notification && self.Notification.permission === 'granted') {
+    
+    const ahora = new Date();
+    const horaActual = ahora.getHours().toString().padStart(2, '0') + ':' + ahora.getMinutes().toString().padStart(2, '0');
+
+    // Control Alarma 1
+    if (horaActual === HORARIO_SW_MANANA) {
+      self.registration.showNotification("☀️ Control de la Mañana", {
+        body: "Es hora de tu toma de tensión matutina. Recuerda reposar 5 minutos antes.",
+        icon: './icono.svg',
+        badge: './icono.svg',
+        vibrate:,
+        tag: 'recordatorio-tension-diario',
+        renotify: true
+      });
+    }
+
+    // Control Alarma 2
+    if (horaActual === HORARIO_SW_NOCHE) {
+      self.registration.showNotification("🌙 Control de la Noche", {
+        body: "Momento de tu toma de tensión nocturna. No olvides registrar tus valores.",
+        icon: './icono.svg',
+        badge: './icono.svg',
+        vibrate:,
+        tag: 'recordatorio-tension-diario',
+        renotify: true
+      });
+    }
+  }
+}, 60000); // Revisa la hora del teléfono cada 60 segundos
+
