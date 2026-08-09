@@ -419,6 +419,86 @@ input.accept = ".csv, text/csv, text/plain, application/vnd.ms-excel";
 		// Feedback visual opcional
 		alert("Datos reiniciados correctamente.");
 	};
+
+// ==========================================
+// 10. RECORDATORIOS DIARIOS DE TENSIÓN (MAÑANA Y NOCHE)
+// ==========================================
+
+// Configura AQUÍ las dos horas exactas de tus avisos (Formato HH:MM)
+const HORARIO_MANANA = "08:30"; 
+const HORARIO_NOCHE  = "20:30";
+
+function solicitarPermisoNotificaciones() {
+    if (!('Notification' in window)) {
+        alert("Tu dispositivo o navegador actual no soporta notificaciones.");
+        return;
+    }
+
+    Notification.requestPermission().then(permiso => {
+        if (permiso === 'granted') {
+            document.getElementById('btn-permiso-notif').style.display = 'none';
+            enviarNotificacionTension(
+                "Tensión Hoy 🩸", 
+                `¡Recordatorios activados! Te avisaré por la mañana (${HORARIO_MANANA}) y por la noche (${HORARIO_NOCHE}).`
+            );
+            iniciarRelojRecordatorios(); 
+        } else {
+            alert("Permiso denegado. No podré avisarte para medir tu presión.");
+        }
+    });
+}
+
+function enviarNotificacionTension(titulo, mensaje) {
+    if (Notification.permission === 'granted' && 'serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(registro => {
+            registro.showNotification(titulo, {
+                body: mensaje,
+                icon: './icono-192.png',
+                badge: './icono-192.png',
+                vibrate:, 
+                tag: 'recordatorio-tension-diario', 
+                renotify: true
+            });
+        });
+    }
+}
+
+function iniciarRelojRecordatorios() {
+    if (window.relojTensionInterval) clearInterval(window.relojTensionInterval);
+
+    // Revisa el reloj del móvil cada 60 segundos
+    window.relojTensionInterval = setInterval(() => {
+        if (Notification.permission !== 'granted') return;
+
+        const ahora = new Date();
+        const horaActual = ahora.getHours().toString().padStart(2, '0') + ':' + ahora.getMinutes().toString().padStart(2, '0');
+
+        // Control de la Mañana
+        if (horaActual === HORARIO_MANANA) {
+            enviarNotificacionTension(
+                "☀️ Control de la Mañana", 
+                "Es hora de tu toma de tensión matutina. Recuerda reposar 5 minutos antes."
+            );
+        }
+        
+        // Control de la Noche
+        if (horaActual === HORARIO_NOCHE) {
+            enviarNotificacionTension(
+                "🌙 Control de la Noche", 
+                "Momento de tu toma de tensión nocturna. No olvides registrar tus valores."
+            );
+        }
+    }, 60000);
+}
+
+// Inicialización automatizada al abrir la app
+window.addEventListener('DOMContentLoaded', () => {
+    if ('Notification' in window && Notification.permission === 'granted') {
+        const btn = document.getElementById('btn-permiso-notif');
+        if (btn) btn.style.display = 'none';
+        iniciarRelojRecordatorios();
+    }
+});
 	
 	// Al final del script
 	setNow();
