@@ -88,7 +88,7 @@ setInterval(() => {
         body: "Es hora de tu toma de tensión matutina. Recuerda reposar 5 minutos antes.",
         icon: './icono.svg',
         badge: './icono.svg',
-        vibrate:,
+        vibrate: [200, 100, 200],
         tag: 'recordatorio-tension-diario',
         renotify: true
       });
