@@ -639,7 +639,7 @@ if ('serviceWorker' in navigator) {
 
 // después de la migración
 // Así de limpio quedará tu initApp() en el futuro cuando elimines la migración:
-async function initApp() {
+/*async function initApp() {
     try {
         // Solo abrimos la conexión para comprobar que IndexedDB responde
         await conectarDB();
@@ -654,7 +654,7 @@ async function initApp() {
         render();
         renderMeds();
         renderHistorial();
-    }
+    }*/
 	
 	// Solicitar que IndexedDB sea persistente y no se borre automáticamente
 	if (navigator.storage && navigator.storage.persist) {
