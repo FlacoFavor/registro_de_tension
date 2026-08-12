@@ -654,7 +654,7 @@ if ('serviceWorker' in navigator) {
         render();
         renderMeds();
         renderHistorial();
-    }*/
+    }
 	
 	// Solicitar que IndexedDB sea persistente y no se borre automáticamente
 	if (navigator.storage && navigator.storage.persist) {
@@ -666,4 +666,4 @@ if ('serviceWorker' in navigator) {
 			}
 		});
 	}
-}
+}*/
