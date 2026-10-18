@@ -291,6 +291,7 @@ input.accept = ".csv, text/csv, text/plain, application/vnd.ms-excel";
 					<div class="item-info">
 						<b>${m.nombre}</b>
 						<span class="uso">💊 ${m.uso || 'Sin uso'}</span>
+						<span class="nota">💊 ${m.nota || 'Sin notas'}</span>
 						<!-- AQUÍ EL CAMBIO DE COLOR -->
 						<div class="hora-toma" style="width: 65vw ;display: flex; justify-content: space-between;">
 							<span style="color: ${reciente ? '#ff3b3b' : '#888'}; font-weight: ${reciente ? 'bold' : 'normal'}">
