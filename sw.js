@@ -1,4 +1,4 @@
-const cacheName = 'tension-v1.2.1';
+const cacheName = 'tension-v1.2.2';
 
 // 1. Listado de recursos esenciales para que la app funcione offline
 const assets = [
